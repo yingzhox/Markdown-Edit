@@ -13,7 +13,7 @@ using MarkdownEdit.MarkdownConverters;
 
 namespace MarkdownEdit.Models
 {
-    internal static class Utility
+    public static class Utility
     {
         public static Func<TKey, TResult> Memoize<TKey, TResult>(this Func<TKey, TResult> func)
         {

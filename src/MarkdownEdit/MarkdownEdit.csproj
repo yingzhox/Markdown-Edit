@@ -123,6 +123,7 @@
     </Compile>
     <Compile Include="Converters\BooleanToScrollBarVisibilityConverter.cs" />
     <Compile Include="Converters\NumberFormatConverter.cs" />
+    <Compile Include="Models\MarkdownHighlighter.cs" />
     <Compile Include="MarkdownConverters\CommonMarkConverter.cs" />
     <Compile Include="MarkdownConverters\IMarkdownConverter.cs" />
     <Compile Include="MarkdownConverters\IToMarkdownConverter.cs" />
@@ -142,6 +143,7 @@
     </Compile>
     <Compile Include="Models\InputKeyBindings.cs" />
     <Compile Include="Models\InputKeyBindingsSettings.cs" />
+    <Compile Include="Models\MarkdownHighlightingColorizer.cs" />
     <Compile Include="Models\TinyIoc.cs" />
     <Compile Include="Commands\SnippetTabCommand.cs" />
     <Compile Include="Snippets\ISnippetManager.cs" />

@@ -106,11 +106,12 @@ namespace MarkdownEdit.Controls
 
         private void SetupSyntaxHighlighting()
         {
-            var reader = new XmlTextReader(new StringReader(Properties.Resources.markdown_xshd));
-            var xshd = HighlightingLoader.LoadXshd(reader);
-            var highlighter = HighlightingLoader.Load(xshd, HighlightingManager.Instance);
-            EditBox.SyntaxHighlighting = highlighter;
-            reader.Close();
+            EditBox.TextArea.TextView.LineTransformers.Add(new MarkdownHighlightingColorizer());
+            //var reader = new XmlTextReader(new StringReader(Properties.Resources.markdown_xshd));
+            //var xshd = HighlightingLoader.LoadXshd(reader);
+            //var highlighter = HighlightingLoader.Load(xshd, HighlightingManager.Instance);
+            //EditBox.SyntaxHighlighting = highlighter;
+            //reader.Close();
         }
 
         private void EditorMenuOnContextMenuOpening(object sender, ContextMenuEventArgs ea)

@@ -58,14 +58,14 @@ namespace MarkdownEdit.Controls
             // make scroll bar narrower
             var grid = EditBox.GetDescendantByType<Grid>();
             grid.ColumnDefinitions[1].Width = new GridLength(8);
+            SetupSyntaxHighlighting();
 
             Dispatcher.InvokeAsync(() =>
             {
                 SetupIndentationCommandBinding();
                 SetupTabSnippetHandler();
                 SetupLineContinuationEnterCommandHandler();
-                SetupSyntaxHighlighting();
-                EditorUtilities.ThemeChangedCallback(this, new DependencyPropertyChangedEventArgs());
+                ThemeChangedCallback(this, new DependencyPropertyChangedEventArgs());
                 EditBox.Focus();
 
                 // fixes context menu not showing on first click
@@ -106,12 +106,10 @@ namespace MarkdownEdit.Controls
 
         private void SetupSyntaxHighlighting()
         {
-            EditBox.TextArea.TextView.LineTransformers.Add(new MarkdownHighlightingColorizer());
-            //var reader = new XmlTextReader(new StringReader(Properties.Resources.markdown_xshd));
-            //var xshd = HighlightingLoader.LoadXshd(reader);
-            //var highlighter = HighlightingLoader.Load(xshd, HighlightingManager.Instance);
-            //EditBox.SyntaxHighlighting = highlighter;
-            //reader.Close();
+            var colorizer = new MarkdownHighlightingColorizer();
+            TextChanged += (s, e) => colorizer.OnTextChanged(Text);
+            ThemeChanged += (s, e) => colorizer.OnThemeChanged(e.Theme);
+            EditBox.TextArea.TextView.LineTransformers.Add(colorizer);
         }
 
         private void EditorMenuOnContextMenuOpening(object sender, ContextMenuEventArgs ea)
@@ -482,17 +480,19 @@ namespace MarkdownEdit.Controls
 
         public EventHandler TextChanged;
 
-        private void EditBoxOnTextChanged(object sender, EventArgs eventArgs)
-        {
-            var handler = TextChanged;
-            if (handler != null) TextChanged(this, eventArgs);
-        }
+        private void EditBoxOnTextChanged(object sender, EventArgs eventArgs) => TextChanged?.Invoke(this, eventArgs);
 
         public event ScrollChangedEventHandler ScrollChanged;
 
-        private void ScrollViewerOnScrollChanged(object sender, ScrollChangedEventArgs ea)
+        private void ScrollViewerOnScrollChanged(object sender, ScrollChangedEventArgs ea) => ScrollChanged?.Invoke(this, ea);
+
+        public EventHandler<ThemeChangedEventArgs> ThemeChanged;
+
+        private void OnThemeChanged(ThemeChangedEventArgs ea) => ThemeChanged?.Invoke(this, ea);
+
+        public class ThemeChangedEventArgs : EventArgs
         {
-            ScrollChanged?.Invoke(this, ea);
+            public Theme Theme { get; set; }
         }
 
         // Properties 
@@ -544,12 +544,18 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty ThemeProperty = DependencyProperty.Register(
-            "Theme", typeof(Theme), typeof(Editor), new PropertyMetadata(default(Theme), EditorUtilities.ThemeChangedCallback));
+            "Theme", typeof(Theme), typeof(Editor), new PropertyMetadata(default(Theme), ThemeChangedCallback));
 
         public Theme Theme
         {
             get { return (Theme)GetValue(ThemeProperty); }
             set { SetValue(ThemeProperty, value); }
+        }
+
+        public static void ThemeChangedCallback(DependencyObject source, DependencyPropertyChangedEventArgs ea)
+        {
+            var editor = (Editor)source;
+            editor.OnThemeChanged(new ThemeChangedEventArgs {Theme = editor.Theme});
         }
 
         public static readonly DependencyProperty VerticalScrollBarVisibilityProperty = DependencyProperty.Register(

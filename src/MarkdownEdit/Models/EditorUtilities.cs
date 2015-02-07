@@ -146,26 +146,26 @@ namespace MarkdownEdit.Models
             }
         }
 
-        public static void ThemeChangedCallback(DependencyObject source, DependencyPropertyChangedEventArgs ea)
-        {
-            var editor = (Editor)source;
-            var theme = editor.Theme;
-            if (theme == null) return;
-            var highlightDefinition = editor.EditBox.SyntaxHighlighting;
-            if (highlightDefinition == null) return;
+        //public static void ThemeChangedCallback(DependencyObject source, DependencyPropertyChangedEventArgs ea)
+        //{
+        //    var editor = (Editor)source;
+        //    var theme = editor.Theme;
+        //    if (theme == null) return;
+        //    var highlightDefinition = editor.EditBox.SyntaxHighlighting;
+        //    if (highlightDefinition == null) return;
 
-            UpdateHilightingColor(highlightDefinition.GetNamedColor("Heading"), theme.HighlightHeading);
-            UpdateHilightingColor(highlightDefinition.GetNamedColor("Emphasis"), theme.HighlightEmphasis);
-            UpdateHilightingColor(highlightDefinition.GetNamedColor("StrongEmphasis"), theme.HighlightStrongEmphasis);
-            UpdateHilightingColor(highlightDefinition.GetNamedColor("InlineCode"), theme.HighlightInlineCode);
-            UpdateHilightingColor(highlightDefinition.GetNamedColor("BlockCode"), theme.HighlightBlockCode);
-            UpdateHilightingColor(highlightDefinition.GetNamedColor("BlockQuote"), theme.HighlightBlockQuote);
-            UpdateHilightingColor(highlightDefinition.GetNamedColor("Link"), theme.HighlightLink);
-            UpdateHilightingColor(highlightDefinition.GetNamedColor("Image"), theme.HighlightImage);
+        //    UpdateHilightingColor(highlightDefinition.GetNamedColor("Heading"), theme.HighlightHeading);
+        //    UpdateHilightingColor(highlightDefinition.GetNamedColor("Emphasis"), theme.HighlightEmphasis);
+        //    UpdateHilightingColor(highlightDefinition.GetNamedColor("StrongEmphasis"), theme.HighlightStrongEmphasis);
+        //    UpdateHilightingColor(highlightDefinition.GetNamedColor("InlineCode"), theme.HighlightInlineCode);
+        //    UpdateHilightingColor(highlightDefinition.GetNamedColor("BlockCode"), theme.HighlightBlockCode);
+        //    UpdateHilightingColor(highlightDefinition.GetNamedColor("BlockQuote"), theme.HighlightBlockQuote);
+        //    UpdateHilightingColor(highlightDefinition.GetNamedColor("Link"), theme.HighlightLink);
+        //    UpdateHilightingColor(highlightDefinition.GetNamedColor("Image"), theme.HighlightImage);
 
-            editor.EditBox.SyntaxHighlighting = null;
-            editor.EditBox.SyntaxHighlighting = highlightDefinition;
-        }
+        //    editor.EditBox.SyntaxHighlighting = null;
+        //    editor.EditBox.SyntaxHighlighting = highlightDefinition;
+        //}
 
         private static void UpdateHilightingColor(HighlightingColor highlightingColor, Highlight highlight)
         {

@@ -19,7 +19,7 @@ namespace MarkdownEdit.Controls
 {
     public partial class Preview : INotifyPropertyChanged
     {
-        public readonly Action<string> UpdatePreview;
+        public readonly Action<Editor> UpdatePreview;
         private FileSystemWatcher _templateWatcher;
         private int _wordCount;
 
@@ -30,7 +30,7 @@ namespace MarkdownEdit.Controls
             Unloaded += (sender, args) => _templateWatcher?.Dispose();
             Browser.Navigating += BrowserOnNavigating;
             Browser.PreviewKeyDown += BrowserPreviewKeyDown;
-            UpdatePreview = Utility.Debounce<string>(s => Dispatcher.InvokeAsync(() => Update(s)));
+            UpdatePreview = Utility.Debounce<Editor>(editor => Dispatcher.InvokeAsync(() => Update(editor.Text)));
 
             Task.Factory.StartNew(() =>
             {

@@ -123,10 +123,8 @@
     </Compile>
     <Compile Include="Converters\BooleanToScrollBarVisibilityConverter.cs" />
     <Compile Include="Converters\NumberFormatConverter.cs" />
-    <Compile Include="Models\MarkdownHighlighter.cs" />
     <Compile Include="MarkdownConverters\CommonMarkConverter.cs" />
     <Compile Include="MarkdownConverters\IMarkdownConverter.cs" />
-    <Compile Include="MarkdownConverters\IToMarkdownConverter.cs" />
     <Compile Include="Models\EditorUtilities.cs" />
     <Compile Include="Models\EditorState.cs" />
     <Compile Include="Controls\FindReplaceDialog.xaml.cs">
@@ -235,6 +233,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -332,7 +331,6 @@
     <None Include="logo.png" />
     <None Include="Lib\Microsoft.DwayneNeed.dll" />
     <None Include="Lib\Microsoft.DwayneNeed.Win32.dll" />
-    <Content Include="Resources\markdown.xshd.txt" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -41,7 +41,7 @@ namespace MarkdownEdit.Models
                 {
                     case BlockTag.AtxHeader:
                     case BlockTag.SETextHeader:
-                        ApplyLinePart(theme.HighlightHeading, start, length, start, end, length);
+                        ApplyLinePart(theme.HighlightHeading, start, length, start, end, length, 1.25);
                         break;
 
                     case BlockTag.BlockQuote:
@@ -49,7 +49,7 @@ namespace MarkdownEdit.Models
                         break;
 
                     case BlockTag.ListItem:
-                        ApplyLinePart(theme.HighlightStrongEmphasis, block.SourcePosition, block.SourceLength, start, end, 1);
+                        ApplyLinePart(theme.HighlightStrongEmphasis, block.SourcePosition, block.SourceLength, start, end, block.ListData.Padding);
                         break;
 
                     case BlockTag.FencedCode:
@@ -90,14 +90,14 @@ namespace MarkdownEdit.Models
             }
         }
 
-        private void ApplyLinePart(Highlight highlight, int sourceStart, int sourceLength, int lineStart, int lineEnd, int maxLength)
+        private void ApplyLinePart(Highlight highlight, int sourceStart, int sourceLength, int lineStart, int lineEnd, int maxLength, double magnify = 1)
         {
             var start = Math.Max(sourceStart, lineStart);
             var end = Math.Min(lineEnd, start + Math.Min(sourceLength, maxLength));
-            ChangeLinePart(start, end, element => ApplyHighlight(element, highlight));
+            ChangeLinePart(start, end, element => ApplyHighlight(element, highlight, magnify));
         }
 
-        public static void ApplyHighlight(VisualLineElement element, Highlight highlight)
+        private static void ApplyHighlight(VisualLineElement element, Highlight highlight, double magnify)
         {
             var trp = element.TextRunProperties;
 
@@ -114,6 +114,7 @@ namespace MarkdownEdit.Models
             trp.SetTypeface(typeFace);
 
             if (highlight.Underline) trp.SetTextDecorations(TextDecorations.Underline);
+            trp.SetFontRenderingEmSize(trp.FontRenderingEmSize * magnify);
         }
 
         private static Brush ColorBrush(string color)
@@ -122,6 +123,10 @@ namespace MarkdownEdit.Models
             try
             {
                 return new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
+            }
+            catch (FormatException)
+            {
+                return null;
             }
             catch (NotSupportedException)
             {
@@ -136,6 +141,10 @@ namespace MarkdownEdit.Models
             {
                 return (FontWeight)new FontWeightConverter().ConvertFromString(fontWeight);
             }
+            catch (FormatException)
+            {
+                return null;
+            }
             catch (NotSupportedException)
             {
                 return null;
@@ -148,6 +157,10 @@ namespace MarkdownEdit.Models
             try
             {
                 return (FontStyle)(new FontStyleConverter().ConvertFromString(fontStyle));
+            }
+            catch (FormatException)
+            {
+                return null;
             }
             catch (NotSupportedException)
             {

@@ -9,11 +9,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Xml;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Document;
-using ICSharpCode.AvalonEdit.Highlighting;
-using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using MarkdownEdit.Commands;
 using MarkdownEdit.Models;
 using MarkdownEdit.Properties;
@@ -51,6 +48,7 @@ namespace MarkdownEdit.Controls
             CommandBindings.Add(new CommandBinding(EditingCommands.CorrectSpellingError, ExecuteSpellCheckReplace));
             CommandBindings.Add(new CommandBinding(EditingCommands.IgnoreSpellingError, ExecuteAddToDictionary));
             _executeAutoSaveLater = Utility.Debounce<string>(s => Dispatcher.Invoke(ExecuteAutoSave), 4000);
+            SetupSyntaxHighlighting();
         }
 
         private void EditBoxOnLoaded(object sender, RoutedEventArgs routedEventArgs)
@@ -58,7 +56,6 @@ namespace MarkdownEdit.Controls
             // make scroll bar narrower
             var grid = EditBox.GetDescendantByType<Grid>();
             grid.ColumnDefinitions[1].Width = new GridLength(8);
-            SetupSyntaxHighlighting();
 
             Dispatcher.InvokeAsync(() =>
             {
@@ -117,16 +114,16 @@ namespace MarkdownEdit.Controls
             var contextMenu = new ContextMenu();
             SpellCheckSuggestions(contextMenu);
 
-            contextMenu.Items.Add(new MenuItem { Header = "Undo", Command = ApplicationCommands.Undo, InputGestureText = "Ctrl+Z" });
-            contextMenu.Items.Add(new MenuItem { Header = "Redo", Command = ApplicationCommands.Redo, InputGestureText = "Ctrl+Y" });
+            contextMenu.Items.Add(new MenuItem {Header = "Undo", Command = ApplicationCommands.Undo, InputGestureText = "Ctrl+Z"});
+            contextMenu.Items.Add(new MenuItem {Header = "Redo", Command = ApplicationCommands.Redo, InputGestureText = "Ctrl+Y"});
             contextMenu.Items.Add(new Separator());
-            contextMenu.Items.Add(new MenuItem { Header = "Cut", Command = ApplicationCommands.Cut, InputGestureText = "Ctrl+X" });
-            contextMenu.Items.Add(new MenuItem { Header = "Copy", Command = ApplicationCommands.Copy, InputGestureText = "Ctrl+C" });
-            contextMenu.Items.Add(new MenuItem { Header = "Paste", Command = ApplicationCommands.Paste, InputGestureText = "Ctrl+V" });
-            contextMenu.Items.Add(new MenuItem { Header = "Paste Special", Command = MainWindow.PasteSpecialCommand, InputGestureText = "Ctrl+Shift+V", ToolTip = "Paste smart quotes and hypens as plain text" });
-            contextMenu.Items.Add(new MenuItem { Header = "Delete", Command = ApplicationCommands.Delete, InputGestureText = "Delete" });
+            contextMenu.Items.Add(new MenuItem {Header = "Cut", Command = ApplicationCommands.Cut, InputGestureText = "Ctrl+X"});
+            contextMenu.Items.Add(new MenuItem {Header = "Copy", Command = ApplicationCommands.Copy, InputGestureText = "Ctrl+C"});
+            contextMenu.Items.Add(new MenuItem {Header = "Paste", Command = ApplicationCommands.Paste, InputGestureText = "Ctrl+V"});
+            contextMenu.Items.Add(new MenuItem {Header = "Paste Special", Command = MainWindow.PasteSpecialCommand, InputGestureText = "Ctrl+Shift+V", ToolTip = "Paste smart quotes and hypens as plain text"});
+            contextMenu.Items.Add(new MenuItem {Header = "Delete", Command = ApplicationCommands.Delete, InputGestureText = "Delete"});
             contextMenu.Items.Add(new Separator());
-            contextMenu.Items.Add(new MenuItem { Header = "Select All", Command = ApplicationCommands.SelectAll, InputGestureText = "Ctrl+A" });
+            contextMenu.Items.Add(new MenuItem {Header = "Select All", Command = ApplicationCommands.SelectAll, InputGestureText = "Ctrl+A"});
 
             var element = (FrameworkElement)ea.Source;
             element.ContextMenu = contextMenu;
@@ -227,7 +224,7 @@ namespace MarkdownEdit.Controls
 
         private bool Execute(Func<bool> action)
         {
-            return EditBox.IsReadOnly ?  EditorUtilities.ErrorBeep() : action();
+            return EditBox.IsReadOnly ? EditorUtilities.ErrorBeep() : action();
         }
 
         public void NewFile()
@@ -346,7 +343,7 @@ namespace MarkdownEdit.Controls
                     NewFile();
                     return true;
                 }
-                var parts = file.Split(new[] { '|' }, 2);
+                var parts = file.Split(new[] {'|'}, 2);
                 var filename = parts[0];
                 var offset = ConvertToOffset(parts.Length == 2 ? parts[1] : "0");
                 EditBox.Text = File.ReadAllText(filename);
@@ -544,7 +541,7 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty ThemeProperty = DependencyProperty.Register(
-            "Theme", typeof(Theme), typeof(Editor), new PropertyMetadata(default(Theme), ThemeChangedCallback));
+            "Theme", typeof (Theme), typeof (Editor), new PropertyMetadata(default(Theme), ThemeChangedCallback));
 
         public Theme Theme
         {
@@ -559,7 +556,7 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty VerticalScrollBarVisibilityProperty = DependencyProperty.Register(
-            "VerticalScrollBarVisibility", typeof(ScrollBarVisibility), typeof(Editor), new PropertyMetadata(default(ScrollBarVisibility)));
+            "VerticalScrollBarVisibility", typeof (ScrollBarVisibility), typeof (Editor), new PropertyMetadata(default(ScrollBarVisibility)));
 
         public ScrollBarVisibility VerticalScrollBarVisibility
         {
@@ -568,7 +565,7 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty ShowEndOfLineProperty = DependencyProperty.Register(
-            "ShowEndOfLine", typeof(bool), typeof(Editor), new PropertyMetadata(default(bool), ShowEndOfLineChanged));
+            "ShowEndOfLine", typeof (bool), typeof (Editor), new PropertyMetadata(default(bool), ShowEndOfLineChanged));
 
         private static void ShowEndOfLineChanged(DependencyObject source, DependencyPropertyChangedEventArgs ea)
         {
@@ -583,7 +580,7 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty ShowSpacesProperty = DependencyProperty.Register(
-            "ShowSpaces", typeof(bool), typeof(Editor), new PropertyMetadata(default(bool), ShowSpacesChanged));
+            "ShowSpaces", typeof (bool), typeof (Editor), new PropertyMetadata(default(bool), ShowSpacesChanged));
 
         private static void ShowSpacesChanged(DependencyObject source, DependencyPropertyChangedEventArgs ea)
         {
@@ -598,7 +595,7 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty ShowLineNumbersProperty = DependencyProperty.Register(
-            "ShowLineNumbers", typeof(bool), typeof(Editor), new PropertyMetadata(default(bool)));
+            "ShowLineNumbers", typeof (bool), typeof (Editor), new PropertyMetadata(default(bool)));
 
         public bool ShowLineNumbers
         {
@@ -607,7 +604,7 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty ShowTabsProperty = DependencyProperty.Register(
-            "ShowTabs", typeof(bool), typeof(Editor), new PropertyMetadata(default(bool), ShowTabsChanged));
+            "ShowTabs", typeof (bool), typeof (Editor), new PropertyMetadata(default(bool), ShowTabsChanged));
 
         private static void ShowTabsChanged(DependencyObject source, DependencyPropertyChangedEventArgs ea)
         {
@@ -622,7 +619,7 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty SpellCheckProviderProperty = DependencyProperty.Register(
-            "SpellCheckProvider", typeof(ISpellCheckProvider), typeof(Editor), new PropertyMetadata(default(ISpellCheckProvider), SpellCheckProviderPropertyChanged));
+            "SpellCheckProvider", typeof (ISpellCheckProvider), typeof (Editor), new PropertyMetadata(default(ISpellCheckProvider), SpellCheckProviderPropertyChanged));
 
         private static void SpellCheckProviderPropertyChanged(DependencyObject source, DependencyPropertyChangedEventArgs e)
         {
@@ -638,7 +635,7 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty HighlightCurrentLineProperty = DependencyProperty.Register(
-            "HighlightCurrentLine", typeof(bool), typeof(Editor), new PropertyMetadata(default(bool), HighlightCurrentLineChanged));
+            "HighlightCurrentLine", typeof (bool), typeof (Editor), new PropertyMetadata(default(bool), HighlightCurrentLineChanged));
 
         private static void HighlightCurrentLineChanged(DependencyObject source, DependencyPropertyChangedEventArgs e)
         {
@@ -653,7 +650,7 @@ namespace MarkdownEdit.Controls
         }
 
         public static readonly DependencyProperty SnippetManagerProperty = DependencyProperty.Register(
-            "SnippetManager", typeof(ISnippetManager), typeof(Editor), new PropertyMetadata(default(ISnippetManager)));
+            "SnippetManager", typeof (ISnippetManager), typeof (Editor), new PropertyMetadata(default(ISnippetManager)));
 
         public ISnippetManager SnippetManager
         {
@@ -718,7 +715,7 @@ namespace MarkdownEdit.Controls
             var files = e.Data.GetData(DataFormats.FileDrop) as string[];
             if (files == null) return;
 
-            var imageExtensions = new[] { ".jpg", "jpeg", ".png", ".bmp", ".gif" };
+            var imageExtensions = new[] {".jpg", "jpeg", ".png", ".bmp", ".gif"};
             if (imageExtensions.Any(ext => files[0].EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
             {
                 var file = Path.GetFileName(files[0]);

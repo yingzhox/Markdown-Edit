@@ -170,10 +170,8 @@ namespace MarkdownEdit.Models
 
         public void OnTextChanged(string text)
         {
-            var doc = ParseDocument(text);
-            // Possible CommonMark.Net bug: AtxHeader SourceLength is zero
-            foreach (var item in doc.AsEnumerable().Where(item => item.Block != null && item.Block.Tag == BlockTag.AtxHeader)) item.Block.SourceLength = 1;
-            _abstractSyntaxTree = doc;
+            var ast = ParseDocument(text);
+            _abstractSyntaxTree = ast;
         }
 
         public void OnThemeChanged(Theme theme)

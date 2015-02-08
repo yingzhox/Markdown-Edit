@@ -183,7 +183,7 @@ namespace MarkdownEdit.Models
         {
             using (var reader = new StringReader(Normalize(text)))
             {
-                var settings = new CommonMarkSettings {TrackSourcePosition = true};
+                var settings = new CommonMarkSettings { TrackSourcePosition = true };
                 var doc = CommonMarkConverter.ProcessStage1(reader, settings);
                 CommonMarkConverter.ProcessStage2(doc, settings);
                 return doc;

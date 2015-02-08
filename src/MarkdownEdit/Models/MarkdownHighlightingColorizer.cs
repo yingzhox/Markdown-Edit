@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -15,6 +16,15 @@ namespace MarkdownEdit.Models
         private Block _abstractSyntaxTree;
         private Theme _theme;
 
+        private static readonly Dictionary<InlineTag, Func<Theme, Highlight>> InlineHighlight = new Dictionary<InlineTag, Func<Theme, Highlight>>
+        {
+            {InlineTag.Code, t => t.HighlightInlineCode},
+            {InlineTag.Emphasis, t => t.HighlightEmphasis},
+            {InlineTag.Strong, t => t.HighlightStrongEmphasis},
+            {InlineTag.Link, t => t.HighlightLink},
+            {InlineTag.Image, t => t.HighlightImage}
+        };
+
         protected override void ColorizeLine(DocumentLine line)
         {
             var ast = _abstractSyntaxTree;
@@ -29,11 +39,11 @@ namespace MarkdownEdit.Models
 
             var astBlocks = ast
                 .AsEnumerable()
-                .Where(sb => sb.Block != null)
                 .Where(sb => sb.IsOpening)
-                .Where(sb => sb.Block.Tag != BlockTag.Document)
+                .Where(sb => sb.Block != null)
                 .Where(sb => sb.Block.SourcePosition < end)
-                .Where(sb => (sb.Block.SourcePosition + sb.Block.SourceLength) > start);
+                .Where(sb => (sb.Block.SourcePosition + sb.Block.SourceLength) > start)
+                .Where(sb => sb.Block.Tag != BlockTag.Document);
 
             foreach (var block in astBlocks.Select(astBlock => astBlock.Block))
             {
@@ -41,7 +51,7 @@ namespace MarkdownEdit.Models
                 {
                     case BlockTag.AtxHeader:
                     case BlockTag.SETextHeader:
-                        ApplyLinePart(theme.HighlightHeading, start, length, start, end, length, 1.25);
+                        ApplyLinePart(theme.HighlightHeading, block.SourcePosition, block.SourceLength, start, end, length, 1.25);
                         break;
 
                     case BlockTag.BlockQuote:
@@ -60,31 +70,14 @@ namespace MarkdownEdit.Models
 
                 foreach (var inline in block
                     .AsEnumerable()
-                    .Where(b => b.Inline != null)
-                    .Select(inlineBlock => inlineBlock.Inline)
-                    .Where(inline => inline.SourcePosition >= start && inline.SourcePosition < end))
+                    .Where(il => il.Inline != null)
+                    .Where(il => il.Inline.SourcePosition >= start && il.Inline.SourcePosition < end)
+                    .Select(il => il.Inline))
                 {
-                    switch (inline.Tag)
+                    Func<Theme, Highlight> highlight;
+                    if (InlineHighlight.TryGetValue(inline.Tag, out highlight))
                     {
-                        case InlineTag.Code:
-                            ApplyLinePart(theme.HighlightInlineCode, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
-                            break;
-
-                        case InlineTag.Strong:
-                            ApplyLinePart(theme.HighlightStrongEmphasis, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
-                            break;
-
-                        case InlineTag.Image:
-                            ApplyLinePart(theme.HighlightImage, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
-                            break;
-
-                        case InlineTag.Link:
-                            ApplyLinePart(theme.HighlightLink, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
-                            break;
-
-                        case InlineTag.Emphasis:
-                            ApplyLinePart(theme.HighlightEmphasis, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
-                            break;
+                        ApplyLinePart(highlight(theme), inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
                     }
                 }
             }
@@ -114,7 +107,7 @@ namespace MarkdownEdit.Models
             trp.SetTypeface(typeFace);
 
             if (highlight.Underline) trp.SetTextDecorations(TextDecorations.Underline);
-            trp.SetFontRenderingEmSize(trp.FontRenderingEmSize * magnify);
+            if (Math.Abs(magnify - 1.0) > .000001) trp.SetFontRenderingEmSize(trp.FontRenderingEmSize * magnify);
         }
 
         private static Brush ColorBrush(string color)
@@ -183,7 +176,7 @@ namespace MarkdownEdit.Models
         {
             using (var reader = new StringReader(Normalize(text)))
             {
-                var settings = new CommonMarkSettings { TrackSourcePosition = true };
+                var settings = new CommonMarkSettings {TrackSourcePosition = true};
                 var doc = CommonMarkConverter.ProcessStage1(reader, settings);
                 CommonMarkConverter.ProcessStage2(doc, settings);
                 return doc;

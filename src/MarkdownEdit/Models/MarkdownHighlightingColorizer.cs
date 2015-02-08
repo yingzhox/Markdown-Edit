@@ -31,36 +31,61 @@ namespace MarkdownEdit.Models
                 .AsEnumerable()
                 .Where(sb => sb.Block != null)
                 .Where(sb => sb.IsOpening)
-                .Select(sb => new
-                {
-                    Block = sb,
-                    SourcePosition = sb.Block.InlineContent?.SourcePosition ?? sb.Block.SourcePosition,
-                    SourceLength = sb.Block.InlineContent?.SourceLength ?? sb.Block.SourceLength
-                })
-                .Where(a => a.SourcePosition <= end)
-                .Where(a => a.SourcePosition + a.SourceLength > start);
+                .Where(sb => sb.Block.Tag != BlockTag.Document)
+                .Where(sb => sb.Block.SourcePosition < end)
+                .Where(sb => (sb.Block.SourcePosition + sb.Block.SourceLength) > start);
 
-            foreach (var astBlock in astBlocks)
+            foreach (var block in astBlocks.Select(astBlock => astBlock.Block))
             {
-                switch (astBlock.Block.Block.Tag)
+                switch (block.Tag)
                 {
                     case BlockTag.AtxHeader:
                     case BlockTag.SETextHeader:
-                        ApplyLinePart(theme.HighlightHeading, astBlock.SourcePosition, astBlock.SourceLength, start, end, length);
+                        ApplyLinePart(theme.HighlightHeading, start, length, start, end, length);
                         break;
 
                     case BlockTag.BlockQuote:
-                        ApplyLinePart(theme.HighlightBlockQuote, astBlock.SourcePosition, astBlock.SourceLength, start, end, length);
+                        ApplyLinePart(theme.HighlightBlockQuote, block.SourcePosition, block.SourceLength, start, end, length);
                         break;
 
                     case BlockTag.ListItem:
-                        ApplyLinePart(theme.HighlightStrongEmphasis, astBlock.SourcePosition, astBlock.SourceLength, start, end, 1);
+                        ApplyLinePart(theme.HighlightStrongEmphasis, block.SourcePosition, block.SourceLength, start, end, 1);
                         break;
 
                     case BlockTag.FencedCode:
                     case BlockTag.IndentedCode:
-                        ApplyLinePart(theme.HighlightBlockCode, astBlock.SourcePosition, astBlock.SourceLength, start, end, length);
+                        ApplyLinePart(theme.HighlightBlockCode, block.SourcePosition, block.SourceLength, start, end, length);
                         break;
+                }
+
+                foreach (var inline in block
+                    .AsEnumerable()
+                    .Where(b => b.Inline != null)
+                    .Select(inlineBlock => inlineBlock.Inline)
+                    .Where(inline => inline.SourcePosition >= start && inline.SourcePosition < end))
+                {
+                    switch (inline.Tag)
+                    {
+                        case InlineTag.Code:
+                            ApplyLinePart(theme.HighlightInlineCode, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
+                            break;
+
+                        case InlineTag.Strong:
+                            ApplyLinePart(theme.HighlightStrongEmphasis, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
+                            break;
+
+                        case InlineTag.Image:
+                            ApplyLinePart(theme.HighlightImage, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
+                            break;
+
+                        case InlineTag.Link:
+                            ApplyLinePart(theme.HighlightLink, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
+                            break;
+
+                        case InlineTag.Emphasis:
+                            ApplyLinePart(theme.HighlightEmphasis, inline.SourcePosition, inline.SourceLength, start, end, inline.SourceLength);
+                            break;
+                    }
                 }
             }
         }
@@ -80,7 +105,7 @@ namespace MarkdownEdit.Models
             if (foregroundBrush != null) trp.SetForegroundBrush(foregroundBrush);
 
             var backgroundBrush = ColorBrush(highlight.Background);
-            if (backgroundBrush != null) trp.SetForegroundBrush(backgroundBrush);
+            if (backgroundBrush != null) trp.SetBackgroundBrush(backgroundBrush);
 
             var tf = element.TextRunProperties.Typeface;
             var weight = ConvertFontWeight(highlight.FontWeight) ?? tf.Weight;
@@ -132,7 +157,10 @@ namespace MarkdownEdit.Models
 
         public void OnTextChanged(string text)
         {
-            _abstractSyntaxTree = ParseDocument(text);
+            var doc = ParseDocument(text);
+            // Possible CommonMark.Net bug: AtxHeader SourceLength is zero
+            foreach (var item in doc.AsEnumerable().Where(item => item.Block != null && item.Block.Tag == BlockTag.AtxHeader)) item.Block.SourceLength = 1;
+            _abstractSyntaxTree = doc;
         }
 
         public void OnThemeChanged(Theme theme)
